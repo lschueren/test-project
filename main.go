@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"image"
 	_ "image/png"
 	"log"
@@ -8,6 +9,7 @@ import (
 	"path/filepath"
 
 	"github.com/hajimehoshi/ebiten/v2"
+
 )
 
 const (
@@ -26,21 +28,35 @@ const (
 
 var (
 	RunnerImage *ebiten.Image
-	JumpSound   []byte
+
+	context     *oto.Context
 )
 
 type Game struct {
-	count int
-	y     float64
-	vy    float64
+	count       int
+	x           float64
+	y           float64
+	vy          float64
+	facingRight bool
 }
 
 func (g *Game) Update() error {
-	g.count++
-
 	// Handle jumping
 	if ebiten.IsKeyPressed(ebiten.KeySpace) && g.y == 0 {
 		g.vy = jumpVelocity
+
+
+	// Handle walking
+	if ebiten.IsKeyPressed(ebiten.KeyArrowRight) {
+		fmt.Println("Right arrow key pressed")
+		g.x += 2  // Move right
+		g.count++ // Increment count to update animation frame
+		g.facingRight = true
+	} else if ebiten.IsKeyPressed(ebiten.KeyArrowLeft) {
+		fmt.Println("Left arrow key pressed")
+		g.x -= 2  // Move left
+		g.count++ // Increment count to update animation frame
+		g.facingRight = false
 	}
 
 	// Update vertical position and velocity
@@ -59,9 +75,12 @@ func (g *Game) Update() error {
 func (g *Game) Draw(screen *ebiten.Image) {
 	op := &ebiten.DrawImageOptions{}
 	op.GeoM.Translate(-float64(frameWidth)/2, -float64(frameHeight)/2)
-	op.GeoM.Scale(4, 4)
-	x := float64(g.count%((screenWidth+frameWidth*4)/2)) * 2 // Calculate x position
-	op.GeoM.Translate(x, screenHeight/2+g.y)
+	op.GeoM.Scale(2, 2)
+	if !g.facingRight {
+		op.GeoM.Scale(-1, 1)                         // Mirror the image horizontally
+		op.GeoM.Translate(-float64(frameWidth)/2, 0) // Adjust position after mirroring
+	}
+	op.GeoM.Translate(g.x, screenHeight/2+g.y)
 	i := (g.count / 5) % frameCount
 	sx, sy := frameOX+i*frameWidth, frameOY
 	screen.DrawImage(RunnerImage.SubImage(image.Rect(sx, sy, sx+frameWidth, sy+frameHeight)).(*ebiten.Image), op)
@@ -85,6 +104,7 @@ func main() {
 		log.Fatal(err)
 	}
 	RunnerImage = ebiten.NewImageFromImage(img)
+
 
 	ebiten.SetWindowSize(screenWidth, screenHeight)
 	ebiten.SetWindowTitle("Animation (Ebitengine Demo)")
