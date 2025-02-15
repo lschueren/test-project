@@ -9,7 +9,6 @@ import (
 	"path/filepath"
 
 	"github.com/hajimehoshi/ebiten/v2"
-
 )
 
 const (
@@ -28,8 +27,6 @@ const (
 
 var (
 	RunnerImage *ebiten.Image
-
-	context     *oto.Context
 )
 
 type Game struct {
@@ -44,7 +41,7 @@ func (g *Game) Update() error {
 	// Handle jumping
 	if ebiten.IsKeyPressed(ebiten.KeySpace) && g.y == 0 {
 		g.vy = jumpVelocity
-
+	}
 
 	// Handle walking
 	if ebiten.IsKeyPressed(ebiten.KeyArrowRight) {
@@ -104,7 +101,6 @@ func main() {
 		log.Fatal(err)
 	}
 	RunnerImage = ebiten.NewImageFromImage(img)
-
 
 	ebiten.SetWindowSize(screenWidth, screenHeight)
 	ebiten.SetWindowTitle("Animation (Ebitengine Demo)")
